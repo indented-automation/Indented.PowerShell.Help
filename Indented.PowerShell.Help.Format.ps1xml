@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Configuration>
+  <ViewDefinitions>
+  
+    <View>
+      <Name>Indented.Xml.Linq.ValidationResult</Name>
+      <ViewSelectedBy>
+        <TypeName>Indented.Xml.Linq.ValidationResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>Name</Label>
+            <Alignment>left</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>NodeType</Label>
+            <Alignment>left</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Error</Label>
+            <Alignment>left</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>LineNumber</Label>
+            <Alignment>left</Alignment>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>Name</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>NodeType</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Error</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>LineNumber</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    
+  </ViewDefinitions>
+</Configuration>
