@@ -107,6 +107,13 @@ function Set-HelpSyntax {
               # required (Mandatory)
               $ParameterXElement.Attribute('required').Value = $_.IsMandatory.ToString().ToLower()
               
+              # ParameterValue
+              if ($_.ParameterType -eq [Switch]) {
+                $ParameterXElement.Element((GetXNamespace 'command') + 'parameterValue').Remove()
+              } else {
+                $ParameterXElement.Element((GetXNamespace 'command') + 'parameterValue').Value = $_.ParameterType.Name
+              }
+              
               $ParameterXElement
             } |
             AddXElement -XContainer $SyntaxItemXElement -Parent '.'

@@ -23,6 +23,8 @@ function Save-ActiveHelpDocument {
     [String]$Path
   )
 
+  # This needs to be able to act on a path if the active document was loaded from one.
+
   if (-not [System.IO.Path]::IsPathRooted($Path)) {
     $Path = Join-Path $pwd.Path $Path
   }

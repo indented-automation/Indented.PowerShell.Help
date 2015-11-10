@@ -24,6 +24,8 @@ function Set-ActiveHelpDocument {
   #   Change log:
   #     29/10/2015 - Chris Dent - Created.
    
+  # This needs to be able to hold onto the path a document was loaded from so Save can act on it.
+
   [CmdletBinding(DefaultParameterSetName = 'FromXDocument')]
   [OutputType([System.Xml.Linq.XDocument])]
   param(

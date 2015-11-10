@@ -128,6 +128,9 @@ function Update-HelpParameter {
         $IsMandatory = [Boolean]($_.ParameterSets.Values.IsMandatory | Where-Object { $_ -eq $true })
         $ParameterXElement.Attribute('required').Value = $IsMandatory.ToString().ToLower()
 
+        # ParameterValue
+        $ParameterXElement.Element((GetXNamespace 'command') + 'parameterValue').Value = $_.ParameterType.Name
+
         # ParameterType
         $ParameterXElement.Element((GetXNamespace 'dev') + 'type').`
                            Element((GetXNamespace 'maml') + 'name').`
