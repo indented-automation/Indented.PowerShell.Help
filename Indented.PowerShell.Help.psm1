@@ -17,6 +17,7 @@
                  'Save-ActiveHelpDocument',
                  'Set-ActiveHelpDocument',
                  'Set-HelpInputs',
+                 'Set-HelpSynopsis',
                  'Set-HelpSyntax',
                  'Test-HelpDocument',
                  'Update-HelpParameter',

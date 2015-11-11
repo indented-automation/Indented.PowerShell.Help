@@ -19,6 +19,7 @@ function AddXElement {
   #   Author: Chris Dent
   #
   #   Change log:
+  #     11/11/2015 - Chris Dent - Added error handler to kill the pipeline if the expected parent path does not exist for some reason (mal-formed document).
   #     03/11/2015 - Chris Dent - Created.
  
   [CmdletBinding()]
@@ -53,11 +54,22 @@ function AddXElement {
 	    $PrecedingXElement.AddAfterSelf($XElement)
 	  } else {
 	  	$ParentXElement = SelectXPathXElement -XPathExpression $Parent -XContainer $XContainer
-	  	if ($psboundparameters.ContainsKey('SortBy')) {
-	  		$ParentXElement.AddFirst($XElement)
-	  	} else {
-	  		$ParentXElement.Add($XElement)
-	  	}
+	  	if ($ParentXElement) {
+  	  	if ($psboundparameters.ContainsKey('SortBy')) {
+  	  		$ParentXElement.AddFirst($XElement)
+  	  	} else {
+  	  		$ParentXElement.Add($XElement)
+  	  	}
+  	  } else {
+       $pscmdlet.ThrowTerminatingError((
+          New-Object System.Management.Automation.ErrorRecord(
+            (New-Object System.InvalidOperationException "The expected parent node does not exist."),
+            'ParentXNodeValidation,Indented.PowerShell.Help.AddXElement',
+            'OperationStopped',
+            $Parent
+          )
+        ))
+  	  }
 	  }
 	}
 }

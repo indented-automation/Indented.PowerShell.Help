@@ -22,9 +22,8 @@ function Set-ActiveHelpDocument {
   #   Author: Chris Dent
   #
   #   Change log:
+  #     11/11/2015 - Chris Dent - Added a Path property to the XDocument created when a Path is passed. Consumed by Save-HelpDocument.
   #     29/10/2015 - Chris Dent - Created.
-   
-  # This needs to be able to hold onto the path a document was loaded from so Save can act on it.
 
   [CmdletBinding(DefaultParameterSetName = 'FromXDocument')]
   [OutputType([System.Xml.Linq.XDocument])]
@@ -32,7 +31,7 @@ function Set-ActiveHelpDocument {
     [Parameter(ParameterSetName = 'FromXDocument')]
     [System.Xml.Linq.XDocument]$XDocument,
 
-    [Parameter(ValueFromPipelineByPropertyName = $true, ParameterSetName = 'FromPath')]
+    [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'FromPath')]
     [Alias('FullName')]
     [String]$Path,
     
@@ -42,6 +41,7 @@ function Set-ActiveHelpDocument {
   if ($pscmdlet.ParameterSetName -eq 'FromPath') {
     $Path = (Get-Item $Path).FullName
     $XDocument = [System.Xml.Linq.XDocument]::Load($Path, [System.Xml.Linq.LoadOptions]::SetLineInfo)
+    $XDocument | Add-Member Path -MemberType NoteProperty -Value $Path
   }
 
   if (-not $XDocument) {

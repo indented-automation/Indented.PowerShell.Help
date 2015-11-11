@@ -13,29 +13,54 @@ function Save-ActiveHelpDocument {
   #   Author: Chris Dent
   #
   #   Change log:
+  #     11/11/2015 - Chris Dent - Moved parameter validation into the body of the code, throws as terminating errors.
   #     05/11/2015 - Chris Dent - Created.
 
   [CmdletBinding()]
   param(
-    [Parameter(Mandatory = $true)]
-    [ValidateNotNullOrEmpty()]
+    [Parameter(Position = 1)]
     [ValidatePattern( '\.xml$' )]
     [String]$Path
   )
-
-  # This needs to be able to act on a path if the active document was loaded from one.
-
+  
+  $ActiveHelpDocument = Get-ActiveHelpDocument
+  if (-not $ActiveHelpDocument) {
+    $pscmdlet.ThrowTerminatingError((
+      New-Object System.Management.Automation.ErrorRecord(
+        (New-Object System.InvalidOperationException "Unable to find an active help document."),
+        'NullNotAllowed,Indented.PowerShell.Help.Save-ActiveHelpDocument',
+        'OperationStopped',
+        $ActiveHelpDocument
+      )
+    ))
+  }
+  if ($ActiveHelpDocument.Path) {
+    $Path = $ActiveHelpDocument.Path 
+  } elseif (-not $psboundparameters.ContainsKey('Path')) {
+    $pscmdlet.ThrowTerminatingError((
+      New-Object System.Management.Automation.ErrorRecord(
+        (New-Object System.ArgumentException "Cannot bind argument to parameter 'Path' because it is null."),
+        'ParameterArgumentValidationErrorNullNotAllowed,Indented.PowerShell.Help.Save-ActiveHelpDocument',
+        'InvalidArgument',
+        $Path
+      )
+    ))
+  }
+  
   if (-not [System.IO.Path]::IsPathRooted($Path)) {
     $Path = Join-Path $pwd.Path $Path
   }
 
-  if (Get-ActiveHelpDocument) {
-    if (Test-Path (Split-Path $Path -Parent)) {
-      (Get-ActiveHelpDocument).Save($Path, [System.Xml.Linq.SaveOptions]::OmitDuplicateNamespaces)
-    } else {
-      Write-Error "The specified path does not exist ($(Split-Path $Path -Parent))"
-    }
+  if (Test-Path (Split-Path $Path -Parent)) {
+    (Get-ActiveHelpDocument).Save($Path, [System.Xml.Linq.SaveOptions]::OmitDuplicateNamespaces)
   } else {
-    Write-Warning "An active help document was not found."
+    $pscmdlet.ThrowTerminatingError((
+      New-Object System.Management.Automation.ErrorRecord(
+        (New-Object System.ArgumentException "The specified path does not exist."),
+        'ParentPathValidation,Indented.PowerShell.Help.Save-ActiveHelpDocument',
+        'InvalidArgument',
+        $Path
+      )
+    ))
   }
 }
