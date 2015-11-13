@@ -30,10 +30,10 @@ function SetHelpFormattedText {
   param(
     [String]$Text,
 
-    [Parameter(ParameterSetName = 'UsingXPath')]
+    [Parameter(Mandatory = $true)]
     [String]$XPathExpression,
 
-    [Parameter(ParameterSetName = 'UsingXPath')]
+    [Parameter(Mandatory = $true)]
     [System.Xml.Linq.XContainer]$XContainer
   )
 

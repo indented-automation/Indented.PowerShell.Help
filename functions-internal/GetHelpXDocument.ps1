@@ -37,5 +37,5 @@ function GetHelpXDocument {
     }
   }
   
-  return ($XDocument | AddHelpItemsElement)
+  return ($XDocument | AddHelpItemsRootElement)
 }

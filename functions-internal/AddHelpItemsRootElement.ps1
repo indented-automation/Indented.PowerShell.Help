@@ -1,4 +1,4 @@
-function AddHelpItemsElement {
+function AddHelpItemsRootElement {
   # .SYNOPSIS
   #   Add the helpItems root node to an XML document.
   # .DESCRIPTION

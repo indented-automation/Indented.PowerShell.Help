@@ -18,5 +18,5 @@ function New-HelpDocument {
   $XDocument = New-Object System.Xml.Linq.XDocument
   $XDocument.Declaration = New-Object System.Xml.Linq.XDeclaration "1.0", "utf-16", $true
   
-  return ($XDocument | AddHelpItemsElement)
+  return ($XDocument | AddHelpItemsRootElement)
 }

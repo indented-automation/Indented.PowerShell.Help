@@ -9,19 +9,16 @@
 # Public
 #
 
-[Array]$Public = 'Add-HelpCommand',
-                 'Get-ActiveHelpDocument',
+[Array]$Public = 'Get-ActiveHelpDocument',
                  'Get-CmdletInfo',
                  'Get-FunctionInfo',
+                 'Get-HelpDocumentElement',
                  'New-HelpDocument',
+                 'Remove-HelpDocumentElement',
                  'Save-ActiveHelpDocument',
                  'Set-ActiveHelpDocument',
-                 'Set-HelpInputs',
-                 'Set-HelpSynopsis',
-                 'Set-HelpSyntax',
                  'Test-HelpDocument',
-                 'Update-HelpParameter',
-                 'Update-HelpSyntax'
+                 'Update-HelpDocument'
 
 $Public |
   ForEach-Object {
@@ -32,14 +29,23 @@ $Public |
 # Internal
 #
 
-[Array]$Internal = 'AddHelpItemsElement',
+[Array]$Internal = 'AddHelpCommandElement',
+                   'AddHelpItemsRootElement',
                    'AddXElement',
                    'GetHelpXDocument',
                    'GetNamespaceManager',
+                   'GetReservedParameterNames',
                    'GetTemplateXElement',
                    'GetXNamespace',
                    'RegisterNamespace',
-                   'SelectXPathXElement'
+                   'SelectXPathXElement',
+                   'SetHelpFormattedText',
+                   'UpdateHelpExample',
+                   'UpdateHelpInput',
+                   'UpdateHelpLink',
+                   'UpdateHelpOutput',
+                   'UpdateHelpParameter',
+                   'UpdateHelpSyntax'
 
 $Internal |
   ForEach-Object {

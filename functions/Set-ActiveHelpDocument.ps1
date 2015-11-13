@@ -47,7 +47,7 @@ function Set-ActiveHelpDocument {
   if (-not $XDocument) {
     $XDocument = New-HelpDocument
   }
-  $XDocument = $XDocument | AddHelpItemsElement
+  $XDocument = $XDocument | AddHelpItemsRootElement
 
   $Script:ActiveHelpDocument = $XDocument
   if ($PassThru) {
