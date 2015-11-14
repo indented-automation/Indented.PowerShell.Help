@@ -15,5 +15,7 @@ function Get-ActiveHelpDocument {
   [OutputType([System.Xml.Linq.XDocument])]
   param( )
 
-  return $Script:ActiveHelpDocument
+  if (Test-Path Variable:Script:ActiveHelpDocument) {
+    return $Script:ActiveHelpDocument
+  }
 }

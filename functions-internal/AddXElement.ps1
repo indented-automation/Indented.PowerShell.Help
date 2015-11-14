@@ -37,6 +37,7 @@ function AddXElement {
   )
 
   process {
+    $PrecedingXElement = $null
 	  if ($psboundparameters.ContainsKey('SortBy')) {
 		  $NewElementID = SelectXPathXElement -XPathExpression $SortBy -XContainer $XElement | Select-Object -ExpandProperty Value
 		  

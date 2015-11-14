@@ -11,7 +11,7 @@ function GetReservedParameterNames {
   #   Change log
   #     13/11/2015 - Chris Dent - Created.
 
-  if ($script:ReservedParameterNames) {
+  if (Test-Path Variable:Script:ReservedParameterNames) {
     return $script:ReservedParameterNames
   } else {
     $script:ReservedParameterNames = ([System.Management.Automation.Internal.CommonParameters]).GetProperties() | Select-Object -ExpandProperty Name

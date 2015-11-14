@@ -28,11 +28,11 @@ function RegisterNamespace {
     [URI]$URI
   )
 
-  if (-not $Script:XNamespaces) {
-    $Script:XNamespaces = @{}
+  if (-not (Test-Path Variable:Script:XNamespaces)) {
+    New-Variable XNamespaces -Scope Script -Value @{} 
   }
-  if (-not $Script:NamespaceManager) {
-    $Script:NamespaceManager = New-Object System.Xml.XmlNamespaceManager((New-Object System.Xml.NameTable))
+  if (-not (Test-Path Variable:Script:NamespaceManager)) {
+    New-Variable NamespaceManager -Scope Script -Value (New-Object System.Xml.XmlNamespaceManager((New-Object System.Xml.NameTable)))
   }
 
   if (-not $Script:XNamespaces.Contains($Name)) {

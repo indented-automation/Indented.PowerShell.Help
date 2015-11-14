@@ -42,6 +42,8 @@ function UpdateHelpSyntax {
     
   $CommandInfo.ParameterSets |
     ForEach-Object {
+      Write-Verbose "    Creating syntax\syntaxItem for $($_.Name)"
+      
       $SyntaxItemXElement = GetTemplateXElement 'command:syntaxItem'
       # This will have the place-holder as well.
       $SyntaxItemXElement.Element((GetXNamespace 'command') + 'parameter').Remove()
@@ -50,6 +52,8 @@ function UpdateHelpSyntax {
       $_.Parameters |
         Where-Object { $_.Name -notin (GetReservedParameterNames) } |
         ForEach-Object {
+          Write-Verbose "      Creating syntax\syntaxItem\parameter for $($_.Name)"
+          
           $ParameterXElement = GetTemplateXElement 'command:syntaxItem/command:parameter'
           $ParameterXElement.Element((GetXNamespace 'maml') + 'name').Value = $_.Name
           
@@ -89,6 +93,4 @@ function UpdateHelpSyntax {
     } |
     AddXElement -XContainer $XDocument `
       -Parent "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:syntax"
-
-  return $XDocument 
 }

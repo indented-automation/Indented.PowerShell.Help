@@ -51,20 +51,20 @@ function UpdateHelpParameter {
       ForEach-Object {
         $_.Remove() 
       }
-  
+
     $Parameters |
       ForEach-Object {
           $IsNew = $false
 
           # Attempt to select an existing instance of the parameter
           $ParameterXElement = SelectXPathXElement `
-            -XPathExpression "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:parameters[command:parameter/maml:name='$($_.Name)']/*" `
+            -XPathExpression "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:parameters/command:parameter[maml:name='$($_.Name)']" `
             -XContainer $XDocument
           
-          if ($ParameterXElement.Count -gt 0) {
-            Write-Verbose "$($CommandInfo.Name): Updating parameters\parameter block for $($_.Name)"
+          if (($ParameterXElement | Measure-Object).Count -eq 1) {
+            Write-Verbose "    Updating parameters\parameter element for $($_.Name)"
           } else {
-            Write-Verbose "$($CommandInfo.Name): Creating parameters\parameter block for $($_.Name)"
+            Write-Verbose "    Creating parameters\parameter element for $($_.Name)"
             $ParameterXElement = GetTemplateXElement 'command:parameters/command:parameter'
             $ParameterXElement.Element((GetXNamespace 'maml') + 'name').Value = $_.Name
             $IsNew = $true
@@ -94,14 +94,9 @@ function UpdateHelpParameter {
           $ParameterXElement.Attribute('pipelineInput').Value = $PipelineInput
           
           # position
-          $Position = 'named'
-          if ($CommandInfo.DefaultParameterSet) {
-            $Key = $CommandInfo.DefaultParameterSet 
-          } else {
-            $Key = 0 
-          }
-          if ($_.ParameterSets[$Key].Position -ne $null -and $_.ParameterSets[$Key].Position -gt [Int32]::MinValue) {
-            $Position = $_.ParameterSets[$Key].Position
+          $Position = $_.ParameterSets.Values.Position | Sort-Object | Select-Object -First 1
+          if ($Position -eq [Int32]::MinValue) {
+            $Position = 'named' 
           }
           $ParameterXElement.Attribute('position').Value = $Position
           
@@ -159,6 +154,7 @@ function UpdateHelpParameter {
               }
             }
   
+        # The element will only need adding to the document if it is new. The existing instance was modified in situ.
         if ($IsNew) {
           $ParameterXElement
         }
@@ -167,6 +163,4 @@ function UpdateHelpParameter {
         -Parent "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:parameters" `
         -SortBy './maml:name'
   }
-  
-  return $XDocument
 }

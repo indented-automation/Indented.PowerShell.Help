@@ -38,15 +38,9 @@ function AddHelpCommandElement {
   $XElement = SelectXPathXElement `
     -XPathExpression "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']" `
     -XContainer $XDocument
-  if ($XElement -and $Force) {
-    Write-Verbose "$($CommandInfo.Name): Removing from help document"
-    $XElement.Remove()
-    $XElement = $null
-  }
-  
-  if ($XElement) {
-    Write-Warning "$($CommandInfo.Name): Already been added to the help document."
-  } else {
+  if (-not $XElement) {
+    Write-Verbose "  Creating command element"
+
     $XElement = GetTemplateXElement 'command:command'
     $XElement.Element((GetXNamespace 'command') + 'details').`
               Element((GetXNamespace 'command') + 'name').`
@@ -59,14 +53,10 @@ function AddHelpCommandElement {
     $XElement.Element((GetXNamespace 'command') + 'details').`
               Element((GetXNamespace 'command') + 'noun').`
               Value = $CommandInfo.Noun
-
-    Write-Verbose "$($CommandInfo.Name): Adding to help document."
     
     AddXElement -XContainer $XDocument `
       -XElement $XElement `
       -Parent '/helpItems' `
       -SortBy './command:details/command:name'
   }
-  
-  return $XDocument
 }

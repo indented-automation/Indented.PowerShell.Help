@@ -41,13 +41,13 @@ function Set-ActiveHelpDocument {
   if ($pscmdlet.ParameterSetName -eq 'FromPath') {
     $Path = (Get-Item $Path).FullName
     $XDocument = [System.Xml.Linq.XDocument]::Load($Path, [System.Xml.Linq.LoadOptions]::SetLineInfo)
-    $XDocument | Add-Member Path -MemberType NoteProperty -Value $Path
   }
 
   if (-not $XDocument) {
     $XDocument = New-HelpDocument
   }
   $XDocument = $XDocument | AddHelpItemsRootElement
+  $XDocument | Add-Member Path -MemberType NoteProperty -Value $Path
 
   $Script:ActiveHelpDocument = $XDocument
   if ($PassThru) {

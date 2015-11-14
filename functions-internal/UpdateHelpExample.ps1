@@ -15,7 +15,5 @@ function UpdateHelpExample {
     [Switch]$Append
   )
 
-  Write-Host "Hello"
-  
-  return $XDocument
+  Write-Error "Not implemented yet."
 }

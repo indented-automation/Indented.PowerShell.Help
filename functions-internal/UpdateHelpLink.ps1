@@ -15,7 +15,5 @@ function UpdateHelpLink {
     [Switch]$Append
   )
 
-  Write-Host "Hello"
-  
-  return $XDocument
+  Write-Error "Not implemented yet."
 }

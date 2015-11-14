@@ -5,11 +5,15 @@
 #   03/11/2015 - Chris Dent - Added Add-XElement and Set-HelpSyntax.
 #   28/10/2015 - Chris Dent - Created.
 
+Set-StrictMode -Version Latest
+
 #
 # Public
 #
 
-[Array]$Public = 'Get-ActiveHelpDocument',
+[Array]$Public = 'ConvertFrom-CommentBasedHelp',
+                 'ConvertTo-CommentBasedHelp',
+                 'Get-ActiveHelpDocument',
                  'Get-CmdletInfo',
                  'Get-FunctionInfo',
                  'Get-HelpDocumentElement',

@@ -23,16 +23,18 @@ function GetHelpXDocument {
     
     [System.Xml.Linq.XDocument]$XDocument
   )
-  
+
+  $Caller = Get-PSCallStack | Select-Object -First 1 -Skip 1 -ExpandProperty Command
+
   if ($psboundparameters.ContainsKey('Path')) {
-  	Write-Verbose "Document: Loading help content from $Path"
+    Write-Verbose "${Caller}: Loading help content from $Path"
     $XDocument = [System.Xml.Linq.XDocument]::Load($Path, [System.Xml.Linq.LoadOptions]::SetLineInfo)
   } elseif (-not $psboundparameters.ContainsKey('XDocument')) {
     if (Get-ActiveHelpDocument) {
-    	Write-Verbose "Document: Using active help document"
+      Write-Verbose "${Caller}: Using active help document"
       $XDocument = Get-ActiveHelpDocument 
     } else {
-      Write-Verbose "Document: Creating a new help document and setting as active"
+      Write-Verbose "${Caller}: Creating a new help document and setting as active"
       $XDocument = Set-ActiveHelpDocument -PassThru
     }
   }
