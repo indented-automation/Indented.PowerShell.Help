@@ -39,10 +39,11 @@ function UpdateHelpSyntax {
     ForEach-Object {
       $_.Remove() 
     }
-    
+      
   $CommandInfo.ParameterSets |
     ForEach-Object {
-      Write-Verbose "    Creating syntax\syntaxItem for $($_.Name)"
+      $ParameterSetName = $_.Name
+      Write-Verbose "    Creating syntax\syntaxItem for $ParameterSetName"
       
       $SyntaxItemXElement = GetTemplateXElement 'command:syntaxItem'
       # This will have the place-holder as well.
@@ -88,9 +89,11 @@ function UpdateHelpSyntax {
           $ParameterXElement
         } |
         AddXElement -XContainer $SyntaxItemXElement -Parent '.'
-        
-      $SyntaxItemXElement
-    } |
-    AddXElement -XContainer $XDocument `
-      -Parent "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:syntax"
+
+      AddXElement `
+        -XElement $SyntaxItemXElement `
+        -XContainer $XDocument `
+        -Parent "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:syntax" `
+        -Comment $ParameterSetName
+    }
 }

@@ -83,25 +83,24 @@ function Update-HelpDocument {
     
     if ($pscmdlet.ParameterSetName -eq 'FromModule') {
       $null = $psboundparameters.Remove('Module')
-      $Commands = Get-Command -Module $Module
-      $Commands | Update-HelpDocument @psboundparameters
-      
-      # Needs properly wiring.
-      #Get-HelpDocumentElement -Item 'Command' -XDocument $XDocument |
-      #  Where-Object { $_.Name -notin $Commands.Name } |
-      #  Remove-HelpDocumentElement -XDocument $XDocument
+      # If this is documenting itself it can find functions which are not exported as well.
+      # This is a messy work-around.
+      Get-Command -Module $Module |
+        Where-Object { $_.Name -in (Get-Module $Module).ExportedCommands.Keys } |
+        Update-HelpDocument @psboundparameters
     }
 
     if ($pscmdlet.ParameterSetName -eq 'FromDocument') {
       # Harvest commands from the help document.
       $XDocument.Element('helpItems').`
-                 Elements((GetXNamespace 'command') + 'command') |
-                 ForEach-Object {
+                 Elements((GetXNamespace 'command') + 'command').`
+                 ForEach( {
                    $CommandName = $_.Element((GetXNamespace 'command') + 'details').`
                       Element((GetXNamespace 'command') + 'name').`
                       Value
-                   Get-Command $CommandName | Update-HelpDocument @psboundparameters
-                 }
+                   Get-Command $CommandName 
+                 } ) |
+                 Update-HelpDocument @psboundparameters
     }
   }
   

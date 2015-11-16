@@ -1,7 +1,45 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Configuration>
   <ViewDefinitions>
-  
+
+    <View>
+      <Name>Indented.PowerShell.Help.DocumentElement</Name>
+      <ViewSelectedBy>
+        <TypeName>Indented.PowerShell.Help.DocumentElement</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>Name</Label>
+            <Alignment>left</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Item</Label>
+            <Alignment>left</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Properties</Label>
+            <Alignment>left</Alignment>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>Name</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Item</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Properties</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
     <View>
       <Name>Indented.Xml.Linq.ValidationResult</Name>
       <ViewSelectedBy>

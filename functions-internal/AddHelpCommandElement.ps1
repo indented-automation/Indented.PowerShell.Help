@@ -57,6 +57,7 @@ function AddHelpCommandElement {
     AddXElement -XContainer $XDocument `
       -XElement $XElement `
       -Parent '/helpItems' `
-      -SortBy './command:details/command:name'
+      -SortBy './command:details/command:name' `
+      -Comment $($CommandInfo.Name)
   }
 }

@@ -10,6 +10,8 @@ function Get-HelpDocumentElement {
   #
   #   Change log:
   #     14/11/2015 - Chris Dent - Created.
+
+  # This command potentially deprecates SelectXPathXElement. That should, perhaps, be the goal.
   
   [CmdletBinding()]
   [OutputType([System.Management.Automation.PSObject])]
@@ -18,7 +20,6 @@ function Get-HelpDocumentElement {
     [ValidateSet('Command', 'Description', 'Example', 'Inputs', 'Links', 'Outputs', 'Synopsis', 'Syntax', 'Parameter')]
     [String]$Item,
 
-    [Parameter(Mandatory = $true, Position = 2)]
     [System.Management.Automation.CommandInfo]$CommandInfo,
 
     [System.Xml.Linq.XDocument]$XDocument,
@@ -28,29 +29,148 @@ function Get-HelpDocumentElement {
   
   begin {
     $XDocument = GetHelpXDocument @psboundparameters
-    
-    $XPathExpression = switch ($Item) {
-      'Command'      { "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']"; break }
-      'Description'  { "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/maml:description"; break }
-      'Example'      { "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:examples"; break }
-      'Inputs'       { "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:inputTypes"; break }
-      'Links'        { "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:links"; break }
-      'Outputs'      { "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:returnTypes"; break }
-      'Synopsis'     { "/helpItems/command:command/command:details[command:name='$($CommandInfo.Name)']/maml:description"; break }
-      'Syntax'       { "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:syntax"; break }
-      'Parameter'    { "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:parameters"; break }
-    }
-    
-    SelectXPathXElement -XPathExpression $XPathExpression -XContainer $XDocument |
+  }
+  
+  process {
+    $CommandElements = $XDocument.Element('helpItems').`
+                                  Elements((GetXNamespace 'command') + 'command').`
+                                  Where( {
+                                    $CommandName = $_.Element((GetXNamespace 'command') + 'details').`
+                                                      Element((GetXNamespace 'command') + 'name').`
+                                                      Value
+                                                      
+                                    -not $psboundparameters.ContainsKey('CommandInfo') -or $CommandName -eq $Command.Name
+                                  } )
+
+    $CommandElements |
       ForEach-Object {
-        switch ($Item) {
-          'Command' {
-            [PSCustomObject]@{
-              
+        $XElement = $_
+
+        $CommandName = $XElement.Element((GetXNamespace 'command') + 'details').
+                                 Element((GetXNamespace 'command') + 'name').
+                                 Value
+
+        if ($Item -eq 'Parameter') {
+          $Parameters = $XElement.Element((GetXNamespace 'command') + 'parameters').
+                                  Elements((GetXNamespace 'command') + 'parameter')
+          $Parameters |
+            ForEach-Object {
+              $Properties = @{}
+              $_.Attributes() |
+                ForEach-Object {
+                  $Properties.Add($_.Name, $_.Value)
+                }
+              $Properties.Add(
+                'Name',
+                $_.Element((GetXNamespace 'maml') + 'name').Value
+              )
+              $Properties.Add(
+                'Description',
+                $_.Element((GetXNamespace 'maml') + 'description').
+                   Where( { $_.Element((GetXNamespace 'maml') + 'para') } ).
+                   ForEach( { $_.Value } )
+              )
+              $Properties.Add(
+                'parameterValue',
+                $_.Element((GetXNamespace 'command') + 'parameterValue').Value
+              )
+              [PSCustomObject]@{
+                Name        = $CommandName
+                Item        = $Item
+                Properties  = $Properties
+                CommandInfo = (Get-Command $CommandName)
+                XElement    = $XElement
+              } |
+                Add-Member -TypeName 'Indented.PowerShell.Help.DocumentElement' -PassThru
             }
-          } 
+        } elseif ($Item -eq 'Syntax') {
+          
+
+        } else {
+          $Properties = @{}
+
+          switch ($Item) {
+            'Command' {
+              $Properties.Add('Name', $CommandName)
+              $Properties.Add(
+                'Synopsis',
+                $XElement.Element((GetXNamespace 'command') + 'details').
+                          Element((GetXNamespace 'maml') + 'description').
+                          Elements((GetXNamespace 'maml') + 'para').
+                          ForEach( { $_.Value } )
+              )
+              $Properties.Add(
+                'Verb',
+                $XElement.Element((GetXNamespace 'command') + 'details').
+                          Element((GetXNamespace 'command') + 'verb').
+                          Value
+              )
+              $Properties.Add(
+                'Noun',
+                $XElement.Element((GetXNamespace 'command') + 'details').
+                          Element((GetXNamespace 'command') + 'verb').
+                          Value
+              )
+              break
+            }
+            'Description' {
+              $Properties.Add(
+                'Description',
+                $XElement.Element((GetXNamespace 'maml') + 'description').
+                          Where( { $_.Element((GetXNamespace 'maml') + 'para') } ).
+                          ForEach( { $_.Element((GetXNamespace 'maml') + 'para').Value } )
+              )
+              break
+            }
+            'Example' {
+              break                                   
+            }
+            'Inputs' {
+              $Properties.Add(
+                'Type',
+                $XElement.Element((GetXNamespace 'command') + 'inputTypes').
+                          Element((GetXNamespace 'command') + 'inputType').
+                          Element((GetXNamespace 'dev') + 'type').
+                          Element((GetXNamespace 'maml') + 'name').
+                          Value
+              )
+              break 
+            }
+            'Links' {
+              break 
+            }
+            'Outputs' {
+              $Properties.Add(
+                'Type',
+                $XElement.Element((GetXNamespace 'command') + 'returnValues').
+                          Element((GetXNamespace 'command') + 'returnValue').
+                          Element((GetXNamespace 'dev') + 'type').
+                          Element((GetXNamespace 'maml') + 'name').
+                          Value
+              )
+              break
+            }
+            'Synopsis' {
+              $Properties.Add(
+                'Description',
+                $XElement.Element((GetXNamespace 'command') + 'details').
+                          Element((GetXNamespace 'maml') + 'description').
+                          Where( { $_.Element((GetXNamespace 'maml') + 'para') } ).
+                          ForEach( { $_.Element((GetXNamespace 'maml') + 'para').Value } )
+              )
+              break
+            }
+          }
+  
+          [PSCustomObject]@{
+            Name        = $CommandName
+            Item        = $Item
+            Properties  = $Properties
+            CommandInfo = (Get-Command $CommandName)
+            XElement    = $XElement
+          } |
+            Add-Member -TypeName 'Indented.PowerShell.Help.DocumentElement' -PassThru
         }
-        
       }
   }
 }

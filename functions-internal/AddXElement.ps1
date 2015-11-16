@@ -33,7 +33,9 @@ function AddXElement {
     [Parameter(Mandatory = $true)]
     [String]$Parent,
     
-    [String]$SortBy
+    [String]$SortBy,
+    
+    [String]$Comment
   )
 
   process {
@@ -51,15 +53,21 @@ function AddXElement {
 		    }
 		}
 	  
+	  if ($psboundparameters.ContainsKey('Comment')) {
+	    $NewXElement = [Array]([System.Xml.Linq.XComment](New-Object System.Xml.Linq.XComment $Comment)) + $XElement
+	  } else {
+	    $NewXElement = $XElement 
+	  }
+	  
 	  if ($PrecedingXElement) {
-	    $PrecedingXElement.AddAfterSelf($XElement)
+	    $PrecedingXElement.AddAfterSelf($NewXElement)
 	  } else {
 	  	$ParentXElement = SelectXPathXElement -XPathExpression $Parent -XContainer $XContainer
 	  	if ($ParentXElement) {
   	  	if ($psboundparameters.ContainsKey('SortBy')) {
-  	  		$ParentXElement.AddFirst($XElement)
+  	  		$ParentXElement.AddFirst($NewXElement)
   	  	} else {
-  	  		$ParentXElement.Add($XElement)
+  	  		$ParentXElement.Add($NewXElement)
   	  	}
   	  } else {
        $pscmdlet.ThrowTerminatingError((
