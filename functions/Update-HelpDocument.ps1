@@ -67,7 +67,7 @@ function Update-HelpDocument {
 
     [Switch]$Append,
 
-    [Parameter(ParameterSetName = 'ByCommand', ValueFromPipeline = $true)]
+    [Parameter(ParameterSetName = 'FromCommandInfo', ValueFromPipeline = $true)]
     [System.Management.Automation.CommandInfo]$CommandInfo,
     
     [Parameter(ParameterSetName = 'FromModule')]
@@ -84,7 +84,6 @@ function Update-HelpDocument {
     if ($pscmdlet.ParameterSetName -eq 'FromModule') {
       $null = $psboundparameters.Remove('Module')
       # If this is documenting itself it can find functions which are not exported as well.
-      # This is a messy work-around.
       Get-Command -Module $Module |
         Where-Object { $_.Name -in (Get-Module $Module).ExportedCommands.Keys } |
         Update-HelpDocument @psboundparameters

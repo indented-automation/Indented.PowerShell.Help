@@ -3,9 +3,9 @@
   <ViewDefinitions>
 
     <View>
-      <Name>Indented.PowerShell.Help.DocumentElement</Name>
+      <Name>Indented.PowerShell.Help.DocumentItem</Name>
       <ViewSelectedBy>
-        <TypeName>Indented.PowerShell.Help.DocumentElement</TypeName>
+        <TypeName>Indented.PowerShell.Help.DocumentItem</TypeName>
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
@@ -15,6 +15,10 @@
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>Item</Label>
+            <Alignment>left</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ItemName</Label>
             <Alignment>left</Alignment>
           </TableColumnHeader>
           <TableColumnHeader>
@@ -30,6 +34,9 @@
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>Item</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ItemName</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>Properties</PropertyName>
