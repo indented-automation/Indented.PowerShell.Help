@@ -23,7 +23,7 @@ function UpdateHelpInput {
       }
 
     $Parameters.ParameterType |
-      Where-Object { $_ -isnot [Switch] } |
+      Where-Object { $_ -ne [System.Management.Automation.SwitchParameter] } |
       Select-Object -Unique FullName |
       ForEach-Object {
         Write-Verbose "    Creating inputTypes\inputType element for $($_.FullName)"

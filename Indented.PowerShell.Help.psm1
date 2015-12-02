@@ -37,9 +37,10 @@ if ($Classes.Count -ge 1) {
                  'Get-ActiveHelpDocument',
                  'Get-CmdletInfo',
                  'Get-FunctionInfo',
-                 'Get-HelpDocumentElement',
+                 'Get-HelpDocumentItem',
                  'New-HelpDocument',
-                 'Remove-HelpDocumentElement',
+                 'New-HelpExample',
+                 'Remove-HelpDocumentItem',
                  'Save-ActiveHelpDocument',
                  'Set-ActiveHelpDocument',
                  'Test-HelpDocument',
@@ -85,6 +86,7 @@ RegisterNamespace -Name 'command' -URI 'http://schemas.microsoft.com/maml/dev/co
 RegisterNamespace -Name 'dev' -URI 'http://schemas.microsoft.com/maml/dev/2004/10'
 RegisterNamespace -Name 'maml' -URI 'http://schemas.microsoft.com/maml/2004/10'
 
+# It'd be really nice to make this work...
 $completion_Module = {
   param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
 

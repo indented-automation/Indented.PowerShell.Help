@@ -41,27 +41,42 @@ function ConvertFrom-CommentBasedHelp {
   
   process {
     if ($psboundparameters.ContainsKey('CommandInfo')) {
-      $HelpContent = $CommandInfo.ScriptBlock.Ast.GetHelpContent()
-      
       $CommonParams = @{
         CommandInfo = $CommandInfo
         XDocument   = $XDocument
       }
       
       Update-HelpDocument @CommonParams
-      Update-HelpDocument -Item Synopsis -Value $HelpContent.Synopsis @CommonParams
-      Update-HelpDocument -Item Description -Value $HelpContent.Description @CommonParams
-      Update-HelpDocument -Item Links -Value $HelpContent.Links @CommonParams
-      Update-HelpDocument -Item Example -Value $HelpContent.Examples @CommonParams
-      # Update-HelpDocument -Item Notes -Value $HelpContent.Notes -XDocument $XDocument @CommonParams
-    
-      if ($HelpContent.Outputs) {
-        # Update-HelpDocument -Item Outputs -Value $HelpContent.Outputs @CommonParams
-      }
-      $HelpContent.Parameters.Keys |
-        ForEach-Object {
-          Update-HelpDocument -Item "Parameter\$_\Description" -Value $HelpContent.Parameters[$_] @CommonParams
+
+      $HelpContent = $CommandInfo.ScriptBlock.Ast.GetHelpContent()
+      if ($HelpContent) {
+        Update-HelpDocument -Item Synopsis -Value $HelpContent.Synopsis @CommonParams
+        Update-HelpDocument -Item Description -Value $HelpContent.Description @CommonParams
+
+        $HelpContent.Parameters.Keys |
+          ForEach-Object {
+            Update-HelpDocument -Item "Parameter\$_\Description" -Value $HelpContent.Parameters[$_] @CommonParams
+          }
+
+        if ($HelpContent.Examples) {
+          $i = 1
+          $HelpContent.Examples |
+            ForEach-Object {
+              $Example = New-HelpExample $_ -Title "Example $i"
+              Update-HelpDocument -Item Example -Value $Example -Append @CommonParams
+              $i++
+            }
         }
+        if ($HelpContent.Links) {
+          # Update-HelpDocument -Item Links -Value $HelpContent.Links @CommonParams
+        }
+        if ($HelpContent.Notes) {
+          Update-HelpDocument -Item Notes -Value $HelpContent.Notes @CommonParams
+        }
+        if ($HelpContent.Outputs) {
+          # Update-HelpDocument -Item Outputs -Value $HelpContent.Outputs @CommonParams
+        }
+      }
     }
   }
 }

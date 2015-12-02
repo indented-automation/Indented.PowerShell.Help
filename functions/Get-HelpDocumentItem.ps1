@@ -12,7 +12,7 @@ function Get-HelpDocumentItem {
   #     14/11/2015 - Chris Dent - Created.
 
   [CmdletBinding()]
-  [OutputType([Indented.Help.Document.Item])]
+  [OutputType([Indented.PowerShell.Help.DocumentItem])]
   param(
     [Parameter(Position = 1)]
     [String]$Item = 'All',
@@ -22,7 +22,9 @@ function Get-HelpDocumentItem {
 
     [System.String]$Path,
 
-    [System.Xml.Linq.XDocument]$XDocument
+    [System.Xml.Linq.XDocument]$XDocument,
+    
+    [Switch]$Template
   )
   
   begin {
@@ -46,51 +48,40 @@ function Get-HelpDocumentItem {
         $CommandName = $XElement.Element((GetXNamespace 'command') + 'details').
                                  Element((GetXNamespace 'command') + 'name').
                                  Value
-        if (-not $psboundparameters.ContainsKey('CommandInfo')) {
+        if (-not $psboundparameters.ContainsKey('CommandInfo') -and $CommandName -ne '') {
           $CommandInfo = Get-Command $CommandName
         }
 
         # Start by retrieving each element considered interesting
-        $InputTypeName = $OutputTypeName = $ParameterName = $ParameterSetName = '*'
+        $ExampleTitle = $InputTypeName = $OutputTypeName = $ParameterName = $ParameterSetName = '*'
         switch -RegEx ($Item) {
           '^(Details|All)$' {
-            $DocumentItem = New-Object Indented.PowerShell.Help.DocumentItem(
+            New-Object Indented.PowerShell.Help.DocumentItem(
               'Details',
               $CommandInfo,
               $XElement.Element((GetXNamespace 'command') + 'details')
             )
-            $DocumentItem.Properties = @{
-              name = $DocumentItem.XElement.Element((GetXNamespace 'command') + 'name').Value
-              verb = $DocumentItem.XElement.Element((GetXNamespace 'command') + 'verb').Value
-              noun = $DocumentItem.XElement.Element((GetXNamespace 'command') + 'noun').Value
-            }
-            $DocumentItem
           }
           '^(Description|All)$' {
-            $DocumentItem = New-Object Indented.PowerShell.Help.DocumentItem(
+            New-Object Indented.PowerShell.Help.DocumentItem(
               'Description',
               $CommandInfo,
               $XElement.Element((GetXNamespace 'maml') + 'description')
             )
-            $DocumentItem.Properties = @{
-              'para' = $DocumentItem.XElement.Elements((GetXNamespace 'maml') + 'para').
-                                              ForEach( { $_.Value } )
-            }
-            $DocumentItem
           }
-          '^(Example|All)$' {
-            $i = 1
+          '^Example[\\/](?<ExampleTitle>.*)$' {
+            $ExampleTitle = $matches.ExampleTitle
+          }
+          '^Example|^All$' {
             $XElement.Element((GetXNamespace 'command') + 'examples').
                       Elements((GetXNamespace 'command') + 'example').
+                      Where( { $_.Element((GetXNamespace 'maml') + 'title').Value -like $ExampleTitle } ).
                       ForEach( {
-                        $DocumentItem = New-Object Indented.PowerShell.Help.DocumentItem(
-                          "Example\$i",
+                        New-Object Indented.PowerShell.Help.DocumentItem(
+                          "Example",
                           $CommandInfo,
                           $_
                         )
-                        # Properties
-                        $DocumentItem
-                        $i++
                       } )
           }
           '^Inputs[\\/](?<TypeName>.+)$' {
@@ -103,19 +94,11 @@ function Get-HelpDocumentItem {
                                   Element((GetXNamespace 'maml') + 'name').
                                   Value -like $InputTypeName } ).
                       ForEach( {
-                        $DocumentItem = New-Object Indented.PowerShell.Help.DocumentItem(
+                        New-Object Indented.PowerShell.Help.DocumentItem(
                           'Inputs',
                           $CommandInfo,
                           $_
                         )
-                        $DocumentItem.Properties = @{
-                          'name'        = $DocumentItem.XElement.Element((GetXNamespace 'dev') + 'type').
-                                                                 Element((GetXNamespace 'maml') + 'name').
-                                                                 Value
-                          'description' = $DocumentItem.XElement.Element((GetXNamespace 'maml') + 'description').Value
-                        }
-                        $DocumentItem.ItemName = "Inputs\$($DocumentItem.Properties['name'])"
-                        $DocumentItem
                       } )
           }
           '^(Links|All)$' {
@@ -123,17 +106,23 @@ function Get-HelpDocumentItem {
                       Elements((GetXNamespace 'maml') + 'navigationLink').
                       Where( { $_.Element((GetXNamespace 'maml') + 'linkText').Value -ne '' } ).
                       ForEach( {
-                        $DocumentItem = New-Object Indented.PowerShell.Help.DocumentItem(
+                        New-Object Indented.PowerShell.Help.DocumentItem(
                           'Links',
                           $CommandInfo,
                           $_
                         )
-                        $DocumentItem.Properties = @{
-                          'linkText' = $DocumentItem.XElement.Element((GetXNamespace 'maml') + 'linkText').Value
-                          'uri'      = $DocumentItem.XElement.Element((GetXNamespace 'maml') + 'uri').Value
-                        }
-                        $DocumentItem.ItemName = "Outputs\$($DocumentItem.Properties['LinkText'])"
-                        $DocumentItem
+                      } )
+          }
+          '^(Notes|All)$' {
+            # It'd be good to provide this as a single block of text and work with everything else in the background.
+            $XElement.Element((GetXNamespace 'maml') + 'alertSet').
+                      Elements((GetXNamespace 'maml') + 'alert').
+                      ForEach( {
+                        New-Object Indented.PowerShell.Help.DocumentItem(
+                          'Notes',
+                          $CommandInfo,
+                          $_
+                        )
                       } )
           }
           '^Outputs[\\/](?<TypeName>.+)$' {
@@ -147,19 +136,11 @@ function Get-HelpDocumentItem {
                                   Value -like $OutputTypeName
                       } ).
                       ForEach( {
-                        $DocumentItem = New-Object Indented.PowerShell.Help.DocumentItem(
+                        New-Object Indented.PowerShell.Help.DocumentItem(
                           'Outputs',
                           $CommandInfo,
                           $_
                         )
-                        $DocumentItem.Properties = @{
-                          'name'        = $DocumentItem.XElement.Element((GetXNamespace 'dev') + 'type').
-                                                                 Element((GetXNamespace 'maml') + 'name').
-                                                                 Value
-                          'description' = $DocumentItem.XElement.Element((GetXNamespace 'maml') + 'description').Value
-                        }
-                        $DocumentItem.ItemName = "Outputs\$($DocumentItem.Properties['name'])"
-                        $DocumentItem
                       } )
           }
           '^Parameter[\\/](?<ParameterName>.+)$' {
@@ -170,37 +151,20 @@ function Get-HelpDocumentItem {
                       Elements((GetXNamespace 'command') + 'parameter').
                       Where( { $_.Element((GetXNamespace 'maml') + 'name').Value -like $ParameterName } ).
                       ForEach( {
-                        $DocumentItem = New-Object Indented.PowerShell.Help.DocumentItem(
+                        New-Object Indented.PowerShell.Help.DocumentItem(
                           'Parameter',
                           $CommandInfo,
                           $_
                         )
-                        $DocumentItem.Properties = @{
-                          'name'           = $DocumentItem.XElement.Element((GetXNamespace 'maml') + 'name').Value
-                          'description'    = $DocumentItem.XElement.Element((GetXNamespace 'maml') + 'description').Value
-                          'parameterValue' = $DocumentItem.XElement.Element((GetXNamespace 'command') + 'parameterValue').Value
-                          'globbing'       = $DocumentItem.XElement.Attribute('globbing').Value
-                          'pipelineInput'  = $DocumentItem.XElement.Attribute('pipelineInput').Value
-                          'position'       = $DocumentItem.XElement.Attribute('position').Value
-                          'required'       = $DocumentItem.XElement.Attribute('required').Value
-                          'variableLength' = $DocumentItem.XElement.Attribute('variableLength').Value
-                        }
-                        $DocumentItem.ItemName = "Parameter\$($DocumentItem.Properties['name'])"
-                        $DocumentItem
                       } )
           }
           '^(Synopsis|All)$' {
-            $DocumentItem = New-Object Indented.PowerShell.Help.DocumentItem(
+            New-Object Indented.PowerShell.Help.DocumentItem(
               'Synopsis',
               $CommandInfo,
               $XElement.Element((GetXNamespace 'command') + 'details').
                         Element((GetXNamespace 'maml') + 'description')
             )
-            $DocumentItem.Properties = @{
-              'para' = $DocumentItem.XElement.Elements((GetXNamespace 'maml') + 'para').
-                                              ForEach( { $_.Value } )
-            }
-            $DocumentItem
           }
           '^Syntax[\\/](?<ParameterSetName>.+)$' {
             $ParameterSetName = $matches.ParameterSetName
@@ -233,16 +197,7 @@ function Get-HelpDocumentItem {
                                    $CommandInfo,
                                    $_
                                  )
-                                 $DocumentItem.Properties = @{
-                                   'name'           = $DocumentItem.XElement.Element((GetXNamespace 'maml') + 'name').Value
-                                   'parameterValue' = $DocumentItem.XElement.Where( { $_.Element((GetXNamespace 'command') + 'parameterValue') } ).ForEach( { $_.Element((GetXNamespace 'command') + 'parameterValue').Value } )
-                                   'globbing'       = $DocumentItem.XElement.Attribute('globbing').Value
-                                   'pipelineInput'  = $DocumentItem.XElement.Attribute('pipelineInput').Value
-                                   'position'       = $DocumentItem.XElement.Attribute('position').Value
-                                   'required'       = $DocumentItem.XElement.Attribute('required').Value
-                                   'variableLength' = $DocumentItem.XElement.Attribute('variableLength').Value
-                                 }
-                                 $DocumentItem.ItemName = "Syntax\$ThisParameterSetName\$($DocumentItem.Properties['name'])"
+                                 $DocumentItem.ItemName = "Syntax\{0}\{1}" -f $CurrentParameterSetName, $DocumentItem.Properties["name"]
                                  if ($DocumentItem.Properties['name'] -like $ParameterName) {
                                    $DocumentItem
                                  }

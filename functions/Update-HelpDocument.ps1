@@ -2,6 +2,35 @@ function Update-HelpDocument {
   # .SYNOPSIS
   #   Update a help document.
   # .DESCRIPTION
+  #   Update-HelpDocument attempts to construct and write individual items of a help document.
+  #
+  #   The following items are automatically populated and may not require manual updating:
+  #
+  #     * Detail (except Synopsis)
+  #     * Syntax
+  #     * Parameters (except description, globbing and variableLength)
+  #     * Inputs
+  #     * Outputs (where an OutputType attribute is defined)
+  #
+  #   The remaining items require additional information which can by supplied using the Value parameter:
+  #
+  #     * Synopsis
+  #     * Description
+  #     * Parameter descriptions
+  #     * Inputs (where remarks are desired)
+  #     * Outputs (without an OutputType attribute, or where remarks are desired)
+  #     * Links
+  #     * Notes
+  #
+  #   All manually set items can be drawn from comment-based help. Content translation is best effort.
+  #
+  #   Where manually updating a section the value supplied may be:
+  #
+  #     * A string representing the intended value
+  #     * A Indented.PowerShell.Help.DocumentItem object created by one of the item creation functions (New-Help<Item>).
+  #
+  #   The order the elements appear in the file is dictated by the Schema and occasionally by how help is displayed. For example, syntax must be presented in the same order as the param block. Where order is not dictated by either the schema or usage items are inserted in alphabetical order.
+  #
   # .PARAMETER CommandInfo
   #   Update the help entry for the specified command.
   # .PARAMETER Item
@@ -142,6 +171,11 @@ function Update-HelpDocument {
           } else {
             UpdateHelpLink $Value @CommonParams
           }
+        }
+        '^Notes$' {
+          SetHelpFormattedText $Value `
+            -XPathExpression "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/maml:alertSet/maml:alert" `
+            -XContainer $XDocument
         }
         '^(Outputs|All)$' {
           Write-Verbose "  Updating outputs element"

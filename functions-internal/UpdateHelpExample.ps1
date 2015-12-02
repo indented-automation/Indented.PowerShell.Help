@@ -15,5 +15,36 @@ function UpdateHelpExample {
     [Switch]$Append
   )
 
-  Write-Error "Not implemented yet."
+  if ($psboundparameters.ContainsKey('Example')) {
+    if ($Example -is [Indented.PowerShell.Help.DocumentItem]) {
+      $DocumentItem = $Example
+    } elseif ($Example -eq $null -and -not $Append) {
+      $DocumentItem = Get-HelpDocumentItem -Item 'Example' -Template
+    } elseif ($Example -eq $null) {
+      # Ignore this condition for now.
+    } else {
+      $DocumentItem = New-HelpExample $Example 
+    }
+  
+    if (Test-Path variable:DocumentItem) {
+      # Remove the place holder example if still present
+      Get-HelpDocumentItem -Item "Example\" -CommandInfo $CommandInfo -XDocument $XDocument |
+        Remove-HelpDocumentItem
+      
+      if ($Append) { 
+        Get-HelpDocumentItem -Item Example -CommandInfo $CommandInfo -XDocument $XDocument |
+          Where-Object { $_.Properties["title"] -eq $DocumentItem.Properties["title"] } |
+          Remove-HelpDocumentItem
+      } else {
+        # Clear all examples
+        Get-HelpDocumentItem -Item Example -CommandInfo $CommandInfo -XDocument $XDocument |
+          Remove-HelpDocumentItem
+      }
+    
+      AddXElement `
+        -XElement $DocumentItem.XElement `
+        -XContainer $XDocument `
+        -Parent "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:examples"
+    }
+  }
 }

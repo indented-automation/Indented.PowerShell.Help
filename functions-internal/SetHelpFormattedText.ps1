@@ -44,12 +44,11 @@ function SetHelpFormattedText {
     ForEach-Object { $_.Remove() }
 
   # Add new text (if there is any)    
-  $Text.Split("`n", [System.StringSplitOptions]::RemoveEmptyEntries) |
+  $Text -split  '\n{2}' |
     ForEach-Object {
-      # Should go a little more advanced than just this.
       New-Object System.Xml.Linq.XElement((
         [System.Xml.Linq.XName]((GetXNamespace 'maml') + 'para'),
-        [String]$_
+        [String]$_.Trim()
       ))
     } |
     AddXElement -XContainer $XContainer -Parent $XPathExpression

@@ -21,23 +21,28 @@ function GetHelpXDocument {
   param(
     [String]$Path,
     
-    [System.Xml.Linq.XDocument]$XDocument
+    [System.Xml.Linq.XDocument]$XDocument,
+    
+    [Switch]$Template
   )
 
-  $Caller = Get-PSCallStack | Select-Object -First 1 -Skip 1 -ExpandProperty Command
-
-  if ($psboundparameters.ContainsKey('Path')) {
-    Write-Verbose "${Caller}: Loading help content from $Path"
-    $XDocument = [System.Xml.Linq.XDocument]::Load($Path, [System.Xml.Linq.LoadOptions]::SetLineInfo)
-  } elseif (-not $psboundparameters.ContainsKey('XDocument')) {
-    if (Get-ActiveHelpDocument) {
-      Write-Verbose "${Caller}: Using active help document"
-      $XDocument = Get-ActiveHelpDocument 
-    } else {
-      Write-Verbose "${Caller}: Creating a new help document and setting as active"
-      $XDocument = Set-ActiveHelpDocument -PassThru
+  if ($Template) {
+    return [System.Xml.Linq.XDocument]::Load("$psscriptroot\..\variables\template.xml", [System.Xml.Linq.LoadOptions]::SetLineInfo) 
+  } else {
+    $Caller = Get-PSCallStack | Select-Object -First 1 -Skip 1 -ExpandProperty Command
+    if ($psboundparameters.ContainsKey('Path')) {
+      Write-Verbose "${Caller}: Loading help content from $Path"
+      $XDocument = [System.Xml.Linq.XDocument]::Load($Path, [System.Xml.Linq.LoadOptions]::SetLineInfo)
+    } elseif (-not $psboundparameters.ContainsKey('XDocument')) {
+      if (Get-ActiveHelpDocument) {
+        Write-Verbose "${Caller}: Using active help document"
+        $XDocument = Get-ActiveHelpDocument 
+      } else {
+        Write-Verbose "${Caller}: Creating a new help document and setting as active"
+        $XDocument = Set-ActiveHelpDocument -PassThru
+      }
     }
-  }
   
-  return ($XDocument | AddHelpItemsRootElement)
+    return ($XDocument | AddHelpItemsRootElement)
+  }
 }
