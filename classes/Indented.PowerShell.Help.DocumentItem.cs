@@ -154,14 +154,14 @@ namespace Indented
         
         private void GetPropertiesFromParagraph()
         {
-            properties.Add("paragraphs", from element in xElement.Descendants(maml + "para") select element.Value);
+            properties.Add("paragraphs", xElement.Descendants(maml + "para").Select( e => e.Value.ToString() ));
         }
         
         private void GetPropertiesFromExample()
         {
             properties.Add("title",   xElement.Element(maml + "title").Value.ToString());
             properties.Add("code",    xElement.Element(dev + "code").Value.ToString());
-            properties.Add("remarks", from element in xElement.Element(dev + "remarks").Elements(maml + "para") select element.Value.ToString());
+            properties.Add("remarks", xElement.Element(dev + "remarks").Elements(maml + "para").Select( e => e.Value.ToString() ).ToList());
         }
 
         private void GetPropertiesFromIOType()
@@ -179,7 +179,11 @@ namespace Indented
         private void GetPropertiesFromParameter()
         {
             properties.Add("name",           xElement.Element(maml + "name").Value.ToString());
-            properties.Add("parameterValue", xElement.Element(command + "parameterValue").Value);
+            // parameterValue is not populated for SwitchParameters on syntax items
+            if (xElement.Elements(command + "parameterValue").Count() == 1)
+            {
+                properties.Add("parameterValue", xElement.Element(command + "parameterValue").Value);
+            }
             properties.Add("globbing",       Boolean.Parse(xElement.Attribute("globbing").Value));
             properties.Add("pipelineInput",  xElement.Attribute("pipelineInput").Value);
             properties.Add("position",       xElement.Attribute("position").Value);

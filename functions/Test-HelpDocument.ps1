@@ -32,6 +32,8 @@ function Test-HelpDocument {
     [Parameter(ParameterSetName = 'FromXDocument')]
     [System.Xml.Linq.XDocument]$XDocument,
     
+    [Switch]$Template,
+    
     [Switch]$Detailed
   )
   

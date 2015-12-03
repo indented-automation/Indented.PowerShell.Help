@@ -28,6 +28,8 @@ function UpdateHelpSyntax {
     [System.Xml.Linq.XDocument]$XDocument
   )
 
+  # Get-HelpDocumentItem -Item 'Syntax/'
+
   $XElements = SelectXPathXElement `
     -XPathExpression "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:syntax[command:syntaxItem/maml:name='$($CommandInfo.Name)']/*" `
     -XContainer $XDocument
