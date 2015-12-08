@@ -32,7 +32,8 @@ if ($Classes.Count -ge 1) {
 # Public
 #
 
-[Array]$Public = 'ConvertFrom-CommentBasedHelp',
+[Array]$Public = 'Clear-ActiveHelpDocument',
+                 'ConvertFrom-CommentBasedHelp',
                  'ConvertTo-CommentBasedHelp',
                  'Get-ActiveHelpDocument',
                  'Get-CmdletInfo',
@@ -85,19 +86,3 @@ if ($Internal.Count -ge 1) {
 RegisterNamespace -Name 'command' -URI 'http://schemas.microsoft.com/maml/dev/command/2004/10'
 RegisterNamespace -Name 'dev' -URI 'http://schemas.microsoft.com/maml/dev/2004/10'
 RegisterNamespace -Name 'maml' -URI 'http://schemas.microsoft.com/maml/2004/10'
-
-# It'd be really nice to make this work...
-$completion_Module = {
-  param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
-
-  Get-Module |
-    Where-Object { $_.Name -like $wordToComplete } |
-    ForEach-Object {
-      New-Object System.Management.Automation.CompletionResult(
-        $_.Name,
-        $_.Name,
-        'ParameterValue',
-        $_.Name
-      )
-    }
-}

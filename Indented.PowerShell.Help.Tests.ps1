@@ -1,61 +1,90 @@
 Describe 'ConvertFrom-CommentBasedHelp' {
-  It "Converts comment based help to maml" {
+  It 'Converts comment based help to maml' {
     ConvertFrom-CommentBasedHelp -Module Indented.PowerShell.Help | Should Be $null
   }
   
-  It "Returns a help document when passed an XDocument" {
-    (ConvertFrom-CommentBasedHelp -CommandInfo (Get-Command Get-Process) -XDocument (New-HelpDocument)).GetType() | Should Be [System.Xml.Linq.XDocument]
+  It 'Returns a help document when passed an XDocument' {
+    (ConvertFrom-CommentBasedHelp -CommandInfo (Get-Command Update-HelpDocument) -XDocument (New-HelpDocument)).GetType().FullName | Should Be "System.Xml.Linq.XDocument"
   }
   
-  It "Writes a help document to disk when passed a file name" {
-    if (Test-Path "$env:TEMP\Test.xml") {
-      Remove-Item "$env:TEMP\Test.xml"
+  It 'Writes a help document to disk when passed a file name' {
+    if (Test-Path $env:TEMP\Test.xml) {
+      Remove-Item $env:TEMP\Test.xml
     }
-    ConvertFrom-CommentBasedHelp -CommandInfo (Get-Command Get-Process) -Path "$env:TEMP\temp.xml"
-    Test-Path "$env:TEMP\Temp.xml" | Should Be $true
-    Remove-Item "$env:TEMP\Test.xml"
+    ConvertFrom-CommentBasedHelp -CommandInfo (Get-Command Update-HelpDocument) -Path $env:TEMP\temp.xml
+    
+    Test-Path $env:TEMP\Temp.xml | Should Be $true
+    
+    if (Test-Path $env:TEMP\Test.xml) {
+      Remove-Item $env:TEMP\Test.xml
+    }
   }
 }
 
-Describe 'Get-HelpDocumentItem' {
-  It "Gets details from template" {
-    (Get-HelpDocumentItem -Item 'Details' -Template).XElement.Name | Should Be ([System.Xml.Linq.XName]((GetXNamespace 'command') + "details"))
+Describe 'Get-HelpDocumentItem (from the template)' {
+  It 'Gets details from the template' {
+    (Get-HelpDocumentItem -Item 'Details' -Template).XElement.Name | Should Be ([System.Xml.Linq.XName]((GetXNamespace 'command') + 'details'))
   }
 
-  It "Gets description from template" {
-    (Get-HelpDocumentItem -Item 'Description' -Template).XElement.Name | Should Be ([System.Xml.Linq.XName]((GetXNamespace 'maml') + "description"))
+  It 'Gets description from the template' {
+    (Get-HelpDocumentItem -Item 'Description' -Template).XElement.Name | Should Be ([System.Xml.Linq.XName]((GetXNamespace 'maml') + 'description'))
   }
 
-  It "Gets parameter from template" {
-    (Get-HelpDocumentItem -Item 'Parameter' -Template).XElement.Name | Should Be ([System.Xml.Linq.XName]((GetXNamespace 'command') + "parameter"))
+  It 'Gets example from the template' {
+    (Get-HelpDocumentItem -Item 'Example' -Template).XElement.Name | Should Be ([System.Xml.Linq.XName]((GetXNamespace 'command') + 'example'))
   }
 
-  It "Gets synopsis from template" {
-    (Get-HelpDocumentItem -Item 'Synopsis' -Template).XElement.Name | Should Be ([System.Xml.Linq.XName]((GetXNamespace 'maml') + "description"))
+  It 'Gets inputs from the template' {
+    (Get-HelpDocumentItem -Item 'Inputs' -Template).XElement.Name | Should Be ([System.Xml.Linq.XName]((GetXNamespace 'command') + 'inputType'))
   }
 
-  It "Gets syntax from template" {
-    (Get-HelpDocumentItem -Item 'Syntax' -Template).XElement.Name | Should Be ([System.Xml.Linq.XName]((GetXNamespace 'command') + "syntax"))
+  It 'Gets parameter from the template' {
+    (Get-HelpDocumentItem -Item 'Notes' -Template).XElement.Name | Should Be ([System.Xml.Linq.XName]((GetXNamespace 'maml') + 'alert'))
+  }
+
+  It 'Gets outputs from the template' {
+    (Get-HelpDocumentItem -Item 'Outputs' -Template).XElement.Name | Should Be ([System.Xml.Linq.XName]((GetXNamespace 'command') + 'returnValue'))
+  }
+
+  It 'Gets parameter from the template' {
+    (Get-HelpDocumentItem -Item 'Parameter' -Template).XElement.Name | Should Be ([System.Xml.Linq.XName]((GetXNamespace 'command') + 'parameter'))
+  }
+
+  It 'Gets synopsis from the template' {
+    (Get-HelpDocumentItem -Item 'Synopsis' -Template).XElement.Name | Should Be ([System.Xml.Linq.XName]((GetXNamespace 'maml') + 'description'))
+  }
+
+  It 'Gets syntax from the template' {
+    (Get-HelpDocumentItem -Item 'Syntax' -Template).XElement.Name | Should Be ([System.Xml.Linq.XName]((GetXNamespace 'command') + 'parameter'))
   }
 }
 
 Describe 'New-HelpDocument' {
   $HelpDocument = New-HelpDocument
 
-  It "Creates an XDocument" {
+  It 'Creates an XDocument' {
     $HelpDocument -is [System.Xml.Linq.XDocument] | Should Be $true 
   }
 }
 
 Describe 'New-HelpExample' {
-  $Example = New-HelpExample -Example '
-    Get-Process |
+  $Text = 'Get-Process |
       Where-Object { $_.Name -eq "powershell" }
       
     Gets the PowerShell process.'
+
+  $Example = New-HelpExample $Text
+
+  It 'Creates a DocumentItem' {
+    $Example -is [Indented.PowerShell.Help.DocumentItem] | Should be $true
+  }
   
-  If "Separates code from example" {
-    $Example.Code -match '^Get-Process| ShouldBe 
+  It 'Separates code' {
+    $Example.Properties['code'] -match '\}$' | Should be $true
+  }
+  
+  It 'Separates descriptive text' {
+    $Example.Properties['remarks'] -eq 'Gets the PowerShell process.' | Should be $true
   }
 }
 
@@ -65,8 +94,8 @@ Describe 'Test-HelpDocument' {
   }
 
   It 'Tests the active help document' {
-    ConvertFrom-CommentBasedHelp -Command (Get-Command Get-Process)
-    Test-HelpDocument | Should Be $true 
+    $XDocument = ConvertFrom-CommentBasedHelp -Command (Get-Command Update-HelpDocument) -XDocument (New-HelpDocument)
+    Test-HelpDocument -XDocument $XDocument | Should Be $true 
   }
   
   It 'Provides detailed error information' {

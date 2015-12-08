@@ -42,7 +42,8 @@ function UpdateHelpSyntax {
       $_.Remove() 
     }
       
-  $CommandInfo.ParameterSets |    Where-Object { $_.Parameters } |
+  $CommandInfo.ParameterSets |
+    Where-Object { $_.Parameters } |
     ForEach-Object {
       $ParameterSetName = $_.Name
       Write-Verbose "    Creating syntax\syntaxItem for $ParameterSetName"

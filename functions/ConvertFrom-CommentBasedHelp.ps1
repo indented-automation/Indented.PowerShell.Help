@@ -3,10 +3,32 @@ function ConvertFrom-CommentBasedHelp {
   #   Convert command-based help for a command into MAML help.
   # .DESCRIPTION
   #   ConvertFrom-CommentBasedHelp reads existing comment based help and writes the content to a MAML help file.
+  #
+  #   Parsing of items that cannot be discovered, such as the free-form text in descriptive fields is best effort. All content should be checked after conversion.
   # .PARAMETER CommandInfo
   #   A FunctionInfo (derived from CommandInfo) object returned from either Get-Command or Get-FunctionInfo.
   # .PARAMETER Path
+  #   The path to the help document. If a help document does not exist at the specified path it will be created.
   # .PARAMETER XDocument
+  #   All help entries will be written to the existing XDocument object. The modified XDocument will be returned by this command.
+  # .INPUTS
+  #   System.Management.Automation.FunctionInfo
+  #   System.String
+  #   System.Xml.Linq.XDocument
+  # .OUTPUTS
+  #   System.Xml.Linq.XDocument
+  # .EXAMPLE
+  #   ConvertFrom-CommentBasedHelp -CommandInfo (Get-Command Update-HelpDocument)
+  #
+  #   Update or add help for Update-HelpDocument to an active help document.
+  # .EXAMPLE
+  #   ConvertFrom-CommentBasedHelp -Module Indented.PowerShell.Help
+  #
+  #   Convert all comment based help in the module Indented.PowerShell.Help to MAML.
+  # .EXAMPLE
+  #   ConvertFrom-CommentBasedHelp -CommandInfo (Get-Command Update-HelpDocument) -Path C:\Indented.PowerShell.Help-help.xml
+  #
+  #   Convert from comment based help and write the generated help content to the specified path.
   # .NOTES
   #   Author: Chris Dent
   #
@@ -33,9 +55,9 @@ function ConvertFrom-CommentBasedHelp {
       $null = $psboundparameters.Remove('Module')
       # If this is documenting itself it can find functions which are not exported as well.
       # This is a messy work-around.
-      Get-Command -Module $Module |
+      $XDocument = Get-Command -Module $Module |
         Where-Object { $_.Name -in (Get-Module $Module).ExportedCommands.Keys } |
-        ConvertFrom-CommentBasedHelp @psboundparameters
+        ConvertFrom-CommentBasedHelp @psboundparameters -XDocument $XDocument
     }
   }
   
@@ -77,6 +99,14 @@ function ConvertFrom-CommentBasedHelp {
           # Update-HelpDocument -Item Outputs -Value $HelpContent.Outputs @CommonParams
         }
       }
+    }
+  }
+  
+  end {
+    if ($psboundparameters.ContainsKey('Path')) {
+      $XDocument.Save($Path, [System.Xml.Linq.SaveOptions]::OmitDuplicateNamespaces)
+    } elseif ($psboundparameters.ContainsKey('XDocument')) {
+      return $XDocument
     }
   }
 }
