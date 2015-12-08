@@ -3,14 +3,13 @@ function Enable-HelpDocumentTabExpansion {
   param( )
 
   Rename-Item function:TabExpansion2 TabExpansion2_IndentedPowerShellHelp
-  Rename-Item function:TabExpansion2_IndentedPowerSHellHelp
+  Rename-Item function:TabExpansion2_IndentedPowerShellHelp
 
 
   function:TabExpansion2 function:
 
 
 
-# It'd be really nice to make this work...
 $completion_Module = {
   param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
 

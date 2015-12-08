@@ -1,5 +1,8 @@
 #
-# Module loader for Indented.PowerShell.Help
+# Indented.PowerShell.Help
+#
+# Version: $version$
+# Changeset: $sha$
 #
 # Change log:
 #   28/10/2015 - Chris Dent - Created.
