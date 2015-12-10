@@ -1,28 +1,27 @@
 # Indented.PowerShell.Help
 
-A MAML help authoring toolset which, as far as it is possible to do so, automatically generates help content.
+A help authoring toolset which automatically generates help content and converts between help document types (comment based -> MAML; MAML -> comment based).
 
 ## Features
 
 ### Help file generator
 
- - [x] Light-weight modification - Automatically create document when a writer is called.
- - [x] Generate CmdletInfo or FunctionInfo without Import-Module. Note: CmdletInfo still requires an imported assembly (Get-CmdletInfo, Get-FunctionInfo).
- - [x] Generate framework document from CmdletInfo or FunctionInfo (Update-HelpDocument).
- - [x] Generate framework document from Module (Update-HelpDocument).
- - [x] Validate help file against schema (Test-HelpDocument).
+ - [x] Light-weight modification - Automatically create document when any writer is called. Provided through ConvertFrom-CommentBasedHelp and Update-HelpDocument.
+ - [x] Generate CmdletInfo or FunctionInfo without Import-Module. Note: CmdletInfo still requires an imported assembly. Provided by Get-CmdletInfo and Get-FunctionInfo.
+ - [x] Generate framework document from CmdletInfo or FunctionInfo. Provided by Update-HelpDocument.
+ - [x] Generate framework document from Module. Provided by Update-HelpDocument; Module must be loaded (or able to load).
+ - [x] Validate help file against schema. Provided by Test-HelpDocument.
 
 The light-weight generator is exhibited as follows:
 ```
 Update-HelpDocument -Module SomeModule -Verbose
 Save-HelpDocument -Path C:\Temp\NewHelpFile.xml
 ```
-A similar approach will be taken for the conversion between comment-based and MAML:
+A similar approach has been taken for the conversion between comment-based and MAML:
 ```
 ConvertFrom-CommentBasedHelp -Module SomeModule -Verbose
 Save-HelpDocument -Path C:\Temp\NewHelpFile.xml
 ```
-However, conversion is not yet fully operational.
 
 ### Help file generator / editor
 
@@ -30,12 +29,13 @@ However, conversion is not yet fully operational.
 
 Each of the following items is discoverable by the module and automatically written to a MAML file.
 
- - [x] SyntaxItems
+ - [x] SyntaxItems (contains a bug where the param block is empty. Must leave a schema compliant empty element for syntax)
  - [x] Parameters
    - [x] Name
    - [x] Position
    - [x] Required / Mandatory
    - [x] Validators
+   - [ ] Aliases (not part of the document schema; to be confirmed since it's used in a number of MS help documents)
    - [ ] Default value
  - [x] Inputs
  - [x] Outputs (where an [OutputType] attribute is declared)
@@ -50,17 +50,23 @@ The majority of these may be imported from comment-based help.
    - [x] Name
    - [x] Globbing (wildcard support) 
    - [x] variableLength
-   - [x] Description (May import from comment-based help)
- - [ ] Inputs (where commenting of the type, or manual addition of a type is required)
- - [ ] Outputs (where commenting of the type, or manual addition of a type is required)
- - [ ] Examples
+   - [x] Description (set manually, or import from comment based help)
+ - [x] Inputs (where commenting of the type, or manual addition of a type is required)
+ - [x] Outputs (where commenting of the type, or manual addition of a type is required)
+ - [x] Examples
  - [ ] Links
- - [ ] Notes
+ - [x] Notes
 
 ### Help file converter
 
- - [ ] Convert from comment-based help to MAML help.
+ - [x] Convert from comment-based help to MAML help.
  - [ ] Convert from MAML help to comment-based help.
- - [ ] Replace comment-based help with an external help reference for existing functions and modules (may always be experimental).
- - [ ] Replace an external help reference with comment based help for existing functions and modules (may always be experimental).
- - [ ] Customisable comment-based help formatting (comment character, indentation, key-work case, position.
+ - [ ] Replace comment-based help with an external help reference for existing functions and modules (using AST, must backup files prior to modification).
+ - [ ] Replace an external help reference with comment based help for existing functions and modules (using AST, must backup files prior to modification).
+ - [x] Customisable comment-based help formatting (comment character, indentation, key-work case, position). Partial implementation in ConvertTo-CommentBasedHelp.
+
+## To-do / Experimental
+
+ - [ ] Allow automatic / elective insertion of default descriptions for parameters.
+ - [ ] Generate and update comment-based help block from function code (can be done as it is, but uses Update-HelpDocument -> MAML -> ConvertTo-CommentBasedHelp which is very wasteful).
+ - [ ] Script block style document / item creation.
