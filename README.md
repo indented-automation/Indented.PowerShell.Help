@@ -35,8 +35,8 @@ Each of the following items is discoverable by the module and automatically writ
    - [x] Position
    - [x] Required / Mandatory
    - [x] Validators
-   - [ ] Aliases (not part of the document schema; to be confirmed since it's used in a number of MS help documents)
    - [ ] Default value
+   - [ ] Aliases (not part of the document schema; to be confirmed since it's used in a number of MS help documents)
  - [x] Inputs
  - [x] Outputs (where an [OutputType] attribute is declared)
 
@@ -65,8 +65,12 @@ The majority of these may be imported from comment-based help.
  - [ ] Replace an external help reference with comment based help for existing functions and modules (using AST, must backup files prior to modification).
  - [x] Customisable comment-based help formatting (comment character, indentation, key-work case, position). Partial implementation in ConvertTo-CommentBasedHelp.
 
-## To-do / Experimental
+### To-do / Experimental
+
+The following are potential features, but should remain as notes until the core functionality described above is complete.
 
  - [ ] Allow automatic / elective insertion of default descriptions for parameters.
  - [ ] Generate and update comment-based help block from function code (can be done as it is, but uses Update-HelpDocument -> MAML -> ConvertTo-CommentBasedHelp which is very wasteful).
  - [ ] Script block style document / item creation.
+ - [ ] Validation / comparison of comment based help content.
+ - [ ] Bulk editing of comment based help.
