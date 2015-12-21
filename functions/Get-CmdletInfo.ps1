@@ -11,6 +11,10 @@ function Get-CmdletInfo {
   #   System.Type
   # .OUTPUTS
   #   System.Management.Automation.CmdletInfo
+  # .EXAMPLE
+  #   Get-CmdletInfo [Microsoft.PowerShell.Commands.GetProcessCommand]
+  #
+  #   Create an instance of CmdletInfo for the GetProcessCommand type (implements the Get-Process Cmdlet).
   # .NOTES
   #   Author: Chris Dent
   #

@@ -2,11 +2,15 @@ function Clear-ActiveHelpDocument {
   # .SYNOPSIS
   #   Clear the help document made active by Set-ActiveHelpDocument.
   # .DESCRIPTION
-  #   Clear-ActiveHelpDocument removes an active help document from memory.
+  #   Clear-ActiveHelpDocument removes and discards an active help document from memory.
   # .INPUTS
   #   None
   # .OUTPUTS
   #   None
+  # .EXAMPLE
+  #   Clear-ActiveHelpDocument
+  #
+  #   Remove the active help document.
   # .NOTES
   #   Author: Chris Dent
   #

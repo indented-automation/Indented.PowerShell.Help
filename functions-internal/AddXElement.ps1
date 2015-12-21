@@ -1,16 +1,20 @@
 function AddXElement {
   # .SYNOPSIS
-  #   Add an XElement into an existing XDocument.
+  #   Add an XElement into an existing XContainer.
   # .DESCRIPTION
   #   Internal use only.
   #
   #   AddXElement adds items to a document in alphabetical order.
+  # .PARAMETER Comment
+  #   Add an XML comment prior to the new XElement.
   # .PARAMETER Parent
   #   The parent element which is expected to contain the XElement.
   # .PARAMETER SortBy
   #   SortBy expects an XPath Expression which will resolve the ID in both the new XElement and the supplied XDocument.
-  # .PARAMETER XDocument
-  #   A valid XDocument.
+  # .PARAMETER XContainer
+  #   The XElement will be added to the parent described by XContainer.
+  # .PARAMETER XElement
+  #   The new element to add.
   # .INPUTS
   #   System.String
   #   System.Xml.Linq.XElement

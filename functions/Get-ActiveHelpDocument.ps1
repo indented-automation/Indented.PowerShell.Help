@@ -5,6 +5,10 @@ function Get-ActiveHelpDocument {
   #   Get-ActiveHelpDocument allows persistent access to a help document.
   # .OUTPUTS
   #   System.Xml.Linq.XDocument
+  # .EXAMPLE
+  #   Get-ActiveHelpDocument
+  #
+  #   Gets the XDocument representing the current help document.
   # .NOTES
   #   Author: Chris Dent
   #

@@ -2,15 +2,13 @@ function AddHelpCommandElement {
   # .SYNOPSIS
   #   Add a template to an XDocument for a command.
   # .DESCRIPTION
+  #   Internal use only.
+  #
   #   Add-HelpCommand may be used to create all expected XML elements associated with the description of a command.
   # .PARAMETER CommandInfo
   #   The command to add.
-  # .PARAMETER Force
-  #   Overwrite an existing document section. All existing information will be lost.
-  # .PARAMETER Path
-  #   An XML file which should contain the 
   # .PARAMETER XDocument
-  #
+  #   The document to modify.
   # .INPUTS
   #   System.Management.Automation.CommandInfo
   #   System.String

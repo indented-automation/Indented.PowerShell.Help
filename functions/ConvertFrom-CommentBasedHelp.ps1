@@ -9,6 +9,8 @@ function ConvertFrom-CommentBasedHelp {
   #   A FunctionInfo (derived from CommandInfo) object returned from either Get-Command or Get-FunctionInfo.
   # .PARAMETER Path
   #   The path to the help document. If a help document does not exist at the specified path it will be created.
+  # .PARAMETER Module
+  #   Convert comment based help to MAML for the specified module.
   # .PARAMETER XDocument
   #   All help entries will be written to the existing XDocument object. The modified XDocument will be returned by this command.
   # .INPUTS
@@ -38,7 +40,7 @@ function ConvertFrom-CommentBasedHelp {
   [CmdletBinding(DefaultParameterSetName = 'FromCommandInfo')]
   param(
     [Parameter(ParameterSetName = 'FromCommandInfo', ValueFromPipeline = $true)]
-    [System.Management.Automation.FunctionInfo]$CommandInfo,
+    $CommandInfo,
    
     [Parameter(ParameterSetName = 'FromModule')]
     [String]$Module,
@@ -63,41 +65,53 @@ function ConvertFrom-CommentBasedHelp {
   
   process {
     if ($psboundparameters.ContainsKey('CommandInfo')) {
-      $CommonParams = @{
-        CommandInfo = $CommandInfo
-        XDocument   = $XDocument
-      }
-      
-      Update-HelpDocument @CommonParams
-
-      $HelpContent = $CommandInfo.ScriptBlock.Ast.GetHelpContent()
-      if ($HelpContent) {
-        Update-HelpDocument -Item Synopsis -Value $HelpContent.Synopsis @CommonParams
-        Update-HelpDocument -Item Description -Value $HelpContent.Description @CommonParams
-
-        $HelpContent.Parameters.Keys |
-          ForEach-Object {
-            Update-HelpDocument -Item "Parameter\$_\Description" -Value $HelpContent.Parameters[$_] @CommonParams
-          }
-
-        if ($HelpContent.Examples) {
-          $i = 1
-          $HelpContent.Examples |
+      $CommandInfo = Get-CommandInfo $CommandInfo
+      if ($CommandInfo -is [System.Management.Automation.FunctionInfo]) {
+        $CommonParams = @{
+          CommandInfo = $CommandInfo
+          XDocument   = $XDocument
+        }
+        
+        Update-HelpDocument @CommonParams
+  
+        $HelpContent = $CommandInfo.ScriptBlock.Ast.GetHelpContent()
+        if ($HelpContent) {
+          Update-HelpDocument -Item Synopsis -Value $HelpContent.Synopsis @CommonParams
+          Update-HelpDocument -Item Description -Value $HelpContent.Description @CommonParams
+  
+          $HelpContent.Parameters.Keys |
             ForEach-Object {
-              $Example = New-HelpExample $_ -Title "Example $i"
-              Update-HelpDocument -Item Example -Value $Example -Append @CommonParams
-              $i++
+              Update-HelpDocument -Item "Parameter\$_\Description" -Value $HelpContent.Parameters[$_] @CommonParams
             }
+  
+          if ($HelpContent.Examples) {
+            $i = 1
+            $HelpContent.Examples |
+              ForEach-Object {
+                $Example = New-HelpExample $_ -Title "Example $i"
+                Update-HelpDocument -Item Example -Value $Example -Append @CommonParams
+                $i++
+              }
+          }
+          if ($HelpContent.Links) {
+            # Update-HelpDocument -Item Links -Value $HelpContent.Links @CommonParams
+          }
+          if ($HelpContent.Notes) {
+            Update-HelpDocument -Item Notes -Value $HelpContent.Notes @CommonParams
+          }
+          if ($HelpContent.Outputs) {
+            # Update-HelpDocument -Item Outputs -Value $HelpContent.Outputs @CommonParams
+          }
         }
-        if ($HelpContent.Links) {
-          # Update-HelpDocument -Item Links -Value $HelpContent.Links @CommonParams
-        }
-        if ($HelpContent.Notes) {
-          Update-HelpDocument -Item Notes -Value $HelpContent.Notes @CommonParams
-        }
-        if ($HelpContent.Outputs) {
-          # Update-HelpDocument -Item Outputs -Value $HelpContent.Outputs @CommonParams
-        }
+      } else {
+        $pscmdlet.WriteError((
+          New-Object System.Managemement.Automation.ErrorRecord(
+            (New-Object ArgumentException "($psboundparamters['CommandInfo']) is not a function"),
+            'InvalidFunctionInfo,Indented.PowerShell.Help\ConvertFrom-CommentBasedHelp',
+            [System.Management.Automation.ErrorCategory]::InvalidArgument,
+            $CommandInfo
+          )
+        ))
       }
     }
   }

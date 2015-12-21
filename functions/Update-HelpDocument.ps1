@@ -97,7 +97,7 @@ function Update-HelpDocument {
     [Switch]$Append,
 
     [Parameter(ParameterSetName = 'FromCommandInfo', ValueFromPipeline = $true)]
-    [System.Management.Automation.CommandInfo]$CommandInfo,
+    $CommandInfo,
     
     [Parameter(ParameterSetName = 'FromModule')]
     [String]$Module,
@@ -134,123 +134,126 @@ function Update-HelpDocument {
   
   process {
     if ($psboundparameters.ContainsKey('CommandInfo')) {
-      Write-Verbose "Update-HelpDocument: $($CommandInfo.Name)"
-
-      $CommonParams = @{
-        CommandInfo = $CommandInfo
-        XDocument   = $XDocument 
-      }
-            
-      # Ensure the command is present in the help file.
-      if (-not (SelectXPathXElement -XPathExpression "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']" -XContainer $XDocument)) {
-        AddHelpCommandElement @CommonParams
-      }
-      switch -regex ($Item) {
-        '^Description$' {
-          Write-Verbose "  Setting description element"
-          SetHelpFormattedText $Value `
-            -XPathExpression "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/maml:description" `
-            -XContainer $XDocument
-        }        
-        '^Example$' {
-          Write-Verbose "  Updating examples element"
-          if ($Append) {
-            UpdateHelpExample $Value -Append @CommonParams
-          } else {
-            UpdateHelpExample $Value @CommonParams
-          }
+      $CommandInfo = Get-CommandInfo $CommandInfo
+      if ($CommandInfo) {
+        Write-Verbose "Update-HelpDocument: $($CommandInfo.Name)"
+  
+        $CommonParams = @{
+          CommandInfo = $CommandInfo
+          XDocument   = $XDocument 
         }
-        '^(Inputs|All)$' {
-          Write-Verbose "  Updating inputs element"
-          UpdateHelpInput @CommonParams
+              
+        # Ensure the command is present in the help file.
+        if (-not (SelectXPathXElement -XPathExpression "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']" -XContainer $XDocument)) {
+          AddHelpCommandElement @CommonParams
         }
-        '^Links$' {
-          Write-Verbose "  Updating links element"
-          if ($Append) {
-            UpdateHelpLink $Value -Append @CommonParams
-          } else {
-            UpdateHelpLink $Value @CommonParams
-          }
-        }
-        '^Notes$' {
-          SetHelpFormattedText $Value `
-            -XPathExpression "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/maml:alertSet/maml:alert" `
-            -XContainer $XDocument
-        }
-        '^(Outputs|All)$' {
-          Write-Verbose "  Updating outputs element"
-          if ($psboundparameters.ContainsKey('Value')) {
+        switch -regex ($Item) {
+          '^Description$' {
+            Write-Verbose "  Setting description element"
+            SetHelpFormattedText $Value `
+              -XPathExpression "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/maml:description" `
+              -XContainer $XDocument
+          }        
+          '^Example$' {
+            Write-Verbose "  Updating examples element"
             if ($Append) {
-              UpdateHelpOutput $Value -Append @CommonParams
+              UpdateHelpExample $Value -Append @CommonParams
             } else {
-              UpdateHelpOutput $Value @CommonParams
+              UpdateHelpExample $Value @CommonParams
             }
-          } else {
-            UpdateHelpOutput @CommonParams
           }
-        }
-        '^Synopsis$' {
-          Write-Verbose "  Setting synopsis element"
-          SetHelpFormattedText $Value `
-            -XPathExpression "/helpItems/command:command/command:details[command:name='$($CommandInfo.Name)']/maml:description" `
-            -XContainer $XDocument
-        }
-        '^(Syntax|All)$' {
-          Write-Verbose "  Updating syntax element"
-          UpdateHelpSyntax @CommonParams
-        }
-        '^(Parameter|All)$' {
-          Write-Verbose "  Updating parameters element"
-          UpdateHelpParameter @CommonParams
-        }
-        '^Parameter[\\/](?<ParameterName>[^\\/]+)' {
-          $ParameterName = $matches.ParameterName 
-        }
-        '^Parameter[\\/][^\\/]+$' {
-          Write-Verbose "  Updating parameters\parameter\$ParameterName element"
-          UpdateHelpParameter -Name $ParameterName @CommonParams
-        }
-        '^Parameter[\\/][^\\/]+[\\/]Description$' {
-          Write-Verbose "  Setting description element for parameters\parameter\$ParameterName"
-          $CommandInfo.Parameters.Values.Where( { $_.Name -like $ParameterName -and $_.Name -notin $ReservedParameterNames } ) |
-            ForEach-Object {
-              SetHelpFormattedText $Value `
-                -XPathExpression "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:parameters/command:parameter[maml:name='$($_.Name)']/maml:description" `
-                -XContainer $XDocument
+          '^(Inputs|All)$' {
+            Write-Verbose "  Updating inputs element"
+            UpdateHelpInput @CommonParams
+          }
+          '^Links$' {
+            Write-Verbose "  Updating links element"
+            if ($Append) {
+              UpdateHelpLink $Value -Append @CommonParams
+            } else {
+              UpdateHelpLink $Value @CommonParams
             }
-          break
-        }
-        '(globbing|variableLength)$' {
-          if ($Value -in 'true', 'false') {
-            $Value = $Value.ToLower()
-          } else {
-            # Die, invalid argument 
           }
+          '^Notes$' {
+            SetHelpFormattedText $Value `
+              -XPathExpression "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/maml:alertSet/maml:alert" `
+              -XContainer $XDocument
+          }
+          '^(Outputs|All)$' {
+            Write-Verbose "  Updating outputs element"
+            if ($psboundparameters.ContainsKey('Value')) {
+              if ($Append) {
+                UpdateHelpOutput $Value -Append @CommonParams
+              } else {
+                UpdateHelpOutput $Value @CommonParams
+              }
+            } else {
+              UpdateHelpOutput @CommonParams
+            }
+          }
+          '^Synopsis$' {
+            Write-Verbose "  Setting synopsis element"
+            SetHelpFormattedText $Value `
+              -XPathExpression "/helpItems/command:command/command:details[command:name='$($CommandInfo.Name)']/maml:description" `
+              -XContainer $XDocument
+          }
+          '^(Syntax|All)$' {
+            Write-Verbose "  Updating syntax element"
+            UpdateHelpSyntax @CommonParams
+          }
+          '^(Parameter|All)$' {
+            Write-Verbose "  Updating parameters element"
+            UpdateHelpParameter @CommonParams
+          }
+          '^Parameter[\\/](?<ParameterName>[^\\/]+)' {
+            $ParameterName = $matches.ParameterName 
+          }
+          '^Parameter[\\/][^\\/]+$' {
+            Write-Verbose "  Updating parameters\parameter\$ParameterName element"
+            UpdateHelpParameter -Name $ParameterName @CommonParams
+          }
+          '^Parameter[\\/][^\\/]+[\\/]Description$' {
+            Write-Verbose "  Setting description element for parameters\parameter\$ParameterName"
+            $CommandInfo.Parameters.Values.Where( { $_.Name -like $ParameterName -and $_.Name -notin $ReservedParameterNames } ) |
+              ForEach-Object {
+                SetHelpFormattedText $Value `
+                  -XPathExpression "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:parameters/command:parameter[maml:name='$($_.Name)']/maml:description" `
+                  -XContainer $XDocument
+              }
+            break
+          }
+          '(globbing|variableLength)$' {
+            if ($Value -in 'true', 'false') {
+              $Value = $Value.ToLower()
+            } else {
+              # Die, invalid argument 
+            }
+          }
+          '^Parameter[\\/][^\\/]+[\\/]globbing$' {
+            $CommandInfo.Parameters.Values.Where( { $_.Name -like $ParameterName -and $_.Name -notin (GetReservedParameterNames) } ) |
+              ForEach-Object {
+                Write-Verbose "  Setting globbing attribute for parameters\parameter\$ParameterName"
+                SetHelpAttributeValue 'globbing' `
+                  -Value $Value
+                  -XPathExpression "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:parameters/command:parameter[maml:name='$($_.Name)']"
+              }                    
+            break
+          }
+          'Parameter[\\/][^\\/]+[\\/]variableLength$' {
+            $CommandInfo.Parameters.Values.Where( { $_.Name -like $ParameterName -and $_.Name -notin (GetReservedParameterNames) } ) |
+              ForEach-Object {
+                Write-Verbose "  Setting variableLength attribute for parameters\parameter\$ParameterName"
+                SetHelpAttributeValue 'variableLength' `
+                  -Value $Value
+                  -XPathExpression "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:parameters/command:parameter[maml:name='$($_.Name)']"
+                SetHelpAttributeValue 'variableLength' `
+                  -Value $Value
+                  -XPathExpression "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:parameters/command:parameter[maml:name='$($_.Name)']/command:parameterValue"
+              }                  
+            break
+          }
+          default { Write-Error "The requested setting is not supported" }
         }
-        '^Parameter[\\/][^\\/]+[\\/]globbing$' {
-          $CommandInfo.Parameters.Values.Where( { $_.Name -like $ParameterName -and $_.Name -notin (GetReservedParameterNames) } ) |
-            ForEach-Object {
-              Write-Verbose "  Setting globbing attribute for parameters\parameter\$ParameterName"
-              SetHelpAttributeValue 'globbing' `
-                -Value $Value
-                -XPathExpression "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:parameters/command:parameter[maml:name='$($_.Name)']"
-            }                    
-          break
-        }
-        'Parameter[\\/][^\\/]+[\\/]variableLength$' {
-          $CommandInfo.Parameters.Values.Where( { $_.Name -like $ParameterName -and $_.Name -notin (GetReservedParameterNames) } ) |
-            ForEach-Object {
-              Write-Verbose "  Setting variableLength attribute for parameters\parameter\$ParameterName"
-              SetHelpAttributeValue 'variableLength' `
-                -Value $Value
-                -XPathExpression "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:parameters/command:parameter[maml:name='$($_.Name)']"
-              SetHelpAttributeValue 'variableLength' `
-                -Value $Value
-                -XPathExpression "/helpItems/command:command[command:details/command:name='$($CommandInfo.Name)']/command:parameters/command:parameter[maml:name='$($_.Name)']/command:parameterValue"
-            }                  
-          break
-        }
-        default { Write-Error "The requested setting is not supported" }
       }
     }
   }

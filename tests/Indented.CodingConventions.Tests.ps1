@@ -271,7 +271,7 @@ function Test-IndentationStyle {
 # Main
 #
 
-$ModuleName = Split-Path $psscriptroot -Leaf
+$ModuleName = Split-Path (Split-Path $psscriptroot -Parent) -Leaf
 
 $ReservedParameterNames = ([System.Management.Automation.Internal.CommonParameters]).GetProperties() | Select-Object -ExpandProperty Name
 $ReservedParameterNames += ([System.Management.Automation.Internal.ShouldProcessParameters]).GetProperties() | Select-Object -ExpandProperty Name
@@ -303,10 +303,12 @@ Describe 'Function help content' {
             }
           }
        
-        It 'Must have at least 1 example' {
-          ($HelpContent.examples.example | Measure-Object).Count | Should BeGreaterThan 0
+        if ($CommandInfo.Name -match '-') {
+          It 'Must have at least 1 example' {
+            ($HelpContent.examples.example | Measure-Object).Count | Should BeGreaterThan 0
+          }
         }
-        
+
         It 'Must have an author in notes' {
           $HelpContent.alertSet.alert.Text | Should Match 'Author: +.+'
         }

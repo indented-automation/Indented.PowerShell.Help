@@ -15,11 +15,18 @@ function Get-FunctionInfo {
   # .OUTPUTS
   #   System.Management.Automation.FunctionInfo
   # .EXAMPLE
-  #   Get-ChildItem -Filter *.psm1 | Get-FUnctionInfo
+  #   Get-ChildItem -Filter *.psm1 | Get-FunctionInfo
+  #
+  #   Get all functions declared within the *.psm1 file and construct FunctionInfo.
+  # .EXAMPLE
+  #   Get-ChildItem C:\Scripts -Filter *.ps1 -Recurse | Get-FunctionInfo
+  #
+  #   Get all functions declared in all ps1 files in C:\Scripts.
   # .NOTES
   #   Author: Chris Dent
   #
   #   Change log:
+  #     10/12/2015 - Chris Dent - Improved error handling.
   #     28/10/2015 - Chris Dent - Created.
   
   [CmdletBinding(DefaultParameterSetName = 'FromPath')]
@@ -51,16 +58,40 @@ function Get-FunctionInfo {
   
   process {
     if ($pscmdlet.ParameterSetName -eq 'FromPath') {
-      $ScriptBlock = [ScriptBlock]::Create((Get-Content $Path -Raw))
+      try {
+        $ScriptBlock = [ScriptBlock]::Create((Get-Content $Path -Raw))
+      } catch {
+        $ErrorRecord = @{
+          Exception = $_.Exception.InnerException
+          ErrorId   = 'InvalidScriptBlock.Indented.PowerShell.Help\Get-FunctionInfo'
+          Category  = 'OperationStopped'
+        }
+        Write-Error @ErrorRecord
+      }
     }
     
-    $ScriptBlock.Ast.FindAll({ param( $Item ); $Item -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $IncludeNested) |
-      ForEach-Object {
-        $Constructor.Invoke(
-          [String]$_.Name,
-          $_.Body.GetScriptBlock(),
-          $null
-        ) 
+    if ($ScriptBlock -ne $null) {
+      $ScriptBlock.Ast.FindAll(
+        { 
+          param( $Item )
+          
+          $Item -is [System.Management.Automation.Language.FunctionDefinitionAst]
+        },
+        $IncludeNested
+      ) | ForEach-Object {
+        try {
+          $InternalScriptBlock = $_.Body.GetScriptBlock()
+        } catch {
+          # Discard exceptions raised, if any, by this method and skip the content 
+        }
+        if ($InternalScriptBlock) {
+          $Constructor.Invoke((
+            [String]$_.Name,
+            $InternalScriptBlock,
+            $null
+          ))
+        }
       }
+    }
   }
 }

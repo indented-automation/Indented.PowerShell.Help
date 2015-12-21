@@ -40,6 +40,7 @@ if ($Classes.Count -ge 1) {
                  'ConvertTo-CommentBasedHelp',
                  'Get-ActiveHelpDocument',
                  'Get-CmdletInfo',
+                 'Get-CommandInfo',
                  'Get-FunctionInfo',
                  'Get-HelpDocumentItem',
                  'New-HelpDocument',
